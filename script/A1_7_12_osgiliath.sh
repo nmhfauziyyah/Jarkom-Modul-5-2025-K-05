@@ -41,12 +41,12 @@ iface eth3 inet static
     netmask 255.255.255.252
 
 EOF
-/etc/init.d/networking restart
+
+# Restart networking agar konfigurasi diterapkan
+systemctl restart networking
 sleep 5 # Beri jeda agar DHCP eth0 mendapat IP
 
-# Konfigurasi DNS Server (Narya)
-# Asumsi Narya adalah 10.66.0.41 (Range A13: 10.66.0.41 - 10.66.0.46)
-echo "nameserver 10.66.0.41" > /etc/resolv.conf
+echo "nameserver 192.168.122.1" > /etc/resolv.conf
 
 # Aktifkan IP Forwarding (live dan persistent)
 echo 1 > /proc/sys/net/ipv4/ip_forward
@@ -71,7 +71,7 @@ route add -net 10.66.0.4 netmask 255.255.255.252 gw 10.66.0.2 # A2 (Minastir/Pel
 route add -net 10.66.0.8 netmask 255.255.255.252 gw 10.66.0.2 # A3 (Pelargir/AnduinBanks)
 route add -net 10.66.0.12 netmask 255.255.255.252 gw 10.66.0.2 # A4 (Pelargir/Rajkatir)
 route add -net 10.66.0.128 netmask 255.255.255.128 gw 10.66.0.2 # A5 (Gilgalad & Cirdan)
-route add -net 10.66.1.0 netmask 255.255.255.0 gw 10.66.0.2 # A6 (Swath4/Elendil)
+route add -net 10.66.1.0 netmask 255.255.255.0 gw 10.66.0.2 # A6 (Switch4/Elendil)
 
 # Rute via Moria (Gateway 10.66.0.18 - eth2)
 # Subnet: A8, A9, A10, A11

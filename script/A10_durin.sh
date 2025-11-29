@@ -24,8 +24,10 @@ iface eth0 inet static
     netmask 255.255.255.192
     gateway 10.66.0.65 # Gateway adalah Wilderland
 EOF
-/etc/init.d/networking restart
-sleep 2
+
+# Restart networking agar konfigurasi diterapkan
+systemctl restart networking
+sleep 5 # Beri jeda agar DHCP eth0 mendapat IP
 
 # Konfigurasi DNS Server (Menggunakan IP NAT/Internet Host: 192.168.122.1)
 echo "nameserver 192.168.122.1" > /etc/resolv.conf
@@ -65,12 +67,14 @@ cat << EOF > /etc/network/interfaces
 auto lo
 iface lo inet loopback
 
-## Ganti ke DHCP
+# Ganti ke DHCP
 auto eth0
 iface eth0 inet dhcp
 EOF
 
-/etc/init.d/networking restart
+# Restart networking agar konfigurasi diterapkan
+systemctl restart networking
+sleep 5 # Beri jeda agar DHCP eth0 mendapat IP
 
 # Menjalankan dhclient secara eksplisit untuk mempercepat proses mendapatkan IP baru
 echo "Meminta IP Address baru melalui DHCP..."

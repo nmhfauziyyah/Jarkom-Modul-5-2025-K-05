@@ -25,8 +25,10 @@ iface eth0 inet static
     netmask 255.255.255.248
     gateway 10.66.0.41 # Gateway adalah Rivendell
 EOF
-/etc/init.d/networking restart
-sleep 2
+
+# Restart networking agar konfigurasi diterapkan
+systemctl restart networking
+sleep 5 # Beri jeda agar DHCP eth0 mendapat IP
 
 # Konfigurasi DNS Server (Menggunakan IP NAT/Internet Host: 192.168.122.1)
 echo "nameserver 192.168.122.1" > /etc/resolv.conf

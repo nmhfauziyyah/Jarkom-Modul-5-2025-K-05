@@ -25,8 +25,10 @@ iface eth0 inet static
     netmask 255.255.255.248
     gateway 10.66.0.41 # Gateway adalah Rivendell
 EOF
-/etc/init.d/networking restart
-sleep 2
+
+# Restart networking agar konfigurasi diterapkan
+systemctl restart networking
+sleep 5 # Beri jeda agar DHCP eth0 mendapat IP
 
 # Konfigurasi DNS Server (Menggunakan IP NAT/Internet Host: 192.168.122.1)
 echo "nameserver 192.168.122.1" > /etc/resolv.conf
@@ -51,9 +53,9 @@ zone "K05.com" {
     file "/etc/bind/K05.com";
 };
 
-zone "40.0.66.10.in-addr.arpa" { # KOREKSI: Gunakan 40.0.66.10 karena 10.66.0.40 adalah Network ID
+zone "40.0.66.10.in-addr.arpa" {
     type master;
-    file "/etc/bind/db.40"; # Nama file baru yang lebih spesifik
+    file "/etc/bind/db.40"; 
 };
 EOF
 

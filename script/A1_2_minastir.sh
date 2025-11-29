@@ -23,7 +23,7 @@ iface eth0 inet static
     address 10.66.0.2
     netmask 255.255.255.252
 
-# eth1: A6 (ke Swath4/Elendil) - 10.66.1.0/24
+# eth1: A6 (ke Swicth4/Elendil) - 10.66.1.0/24
 auto eth1
 iface eth1 inet static
     address 10.66.1.1
@@ -36,7 +36,8 @@ iface eth2 inet static
     netmask 255.255.255.252
 
 EOF
-/etc/init.d/networking restart
+# Restart networking agar konfigurasi diterapkan
+systemctl restart networking
 sleep 2 # Beri jeda agar network aktif
 
 echo "nameserver 192.168.122.1" > /etc/resolv.conf
@@ -74,8 +75,8 @@ route add -net 10.66.0.8 netmask 255.255.255.252 gw 10.66.0.6   # A3 (Pelargir/A
 route add -net 10.66.0.12 netmask 255.255.255.252 gw 10.66.0.6   # A4 (Pelargir/Rajkatir)
 route add -net 10.66.0.128 netmask 255.255.255.128 gw 10.66.0.6 # A5 (Gilgalad & Cirdan)
 
-# Rute via Swath4 (Gateway 10.66.1.2 - eth1) - ke subnet A6 Elendil
-echo "Menambahkan rute via Swath4 (10.66.1.2)"
+# Rute via Switch4 (Gateway 10.66.1.2 - eth1) - ke subnet A6 Elendil
+echo "Menambahkan rute via Switch4 (10.66.1.2)"
 route add -net 10.66.0.0 netmask 255.255.255.0 gw 10.66.1.2     # Subnet Elendil 10.66.0.0/24
 echo "Static Routing selesai."
 
@@ -90,10 +91,9 @@ apt update
 apt install isc-dhcp-relay -y
 
 # Konfigurasi /etc/default/isc-dhcp-relay
-# SERVERS: IP Address Vilya (DHCP Server). Asumsi 10.66.0.42 (dari subnet A13)
-# INTERFACES: eth1 (dari Swath4) dan eth2 (dari Pelargir) yang mendengarkan permintaan DHCP
+# INTERFACES: eth1 (dari Switch4) dan eth2 (dari Pelargir) yang mendengarkan permintaan DHCP
 cat << EOF > /etc/default/isc-dhcp-relay
-SERVERS="10.66.0.42"
+SERVERS="10.66.0.43"
 INTERFACES="eth1 eth2" 
 OPTIONS=""
 EOF
@@ -120,7 +120,7 @@ echo -e "\n=== KONFIRMASI STATUS DHCP RELAY ==="
 service isc-dhcp-relay status | grep 'Active'
 
 echo -e "\n=== UJI KONEKTIVITAS KE VILYA (DHCP SERVER) ==="
-ping -c 3 10.66.0.42
+ping -c 3 10.66.0.43
 
 echo -e "\n=== UJI KONEKTIVITAS KE INTERNET (via Osgiliath) ==="
 ping -c 3 8.8.8.8
