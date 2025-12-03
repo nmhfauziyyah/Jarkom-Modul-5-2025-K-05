@@ -57,9 +57,255 @@ Pembagian subnetting dengan VLSM
 
 ## Misi 1
 
-### 1.3. Konfigurasi rute antar Subnet
+### 1.3. Konfigurasi Rute Antar Subnet
 
+Tujuan: Membuat konfigurasi rute untuk menghubungkan semua subnet dengan benar. Pastikan perangkat dapat saling terhubung melalui router yang telah ditentukan.
 
+#### 📸 Bukti
+
+![bukti](assets/misi1no3osgiliath.png)
+![bukti](assets/misi1no3minastir.png)
+![bukti](assets/misi1no3pelargir.png)
+![bukti](assets/misi1no3anduin.png)
+![bukti](assets/misi1no3moria.png)
+![bukti](assets/misi1no3wilderland.png)
+![bukti](assets/misi1no3rivendel.png)
+
+---
+
+### 1.4. Konfigurasi Service
+
+Tujuan: Melakukan konfigurasi service pada setiap perangkat yang ditugaskan untuk memastikan komunikasi jaringan berjalan dengan sempurna.
+
+#### 1.4.1. DHCP Server (Vilya)
+
+**Fungsi**: Vilya berfungsi sebagai DHCP Server agar perangkat dalam Khamul, Durin, Gilgalad, Elendil, Cirdan, dan Isildur menerima IP otomatis.
+
+**Instalasi DHCP Server**
+```bash
+apt-get update
+apt-get install isc-dhcp-server -y
+```
+
+**Konfigurasi DHCP Server (/etc/dhcp/dhcpd.conf)**
+```
+# Set interface yang melayani DHCP Relay
+sed -i 's/INTERFACESv4=""/INTERFACESv4="eth0"/' /etc/default/isc-dhcp-server
+
+# Konfigurasi dhcpd.conf
+cat << EOF > /etc/dhcp/dhcpd.conf
+# File konfigurasi utama DHCP Server Vilya (10.66.0.43)
+ddns-update-style none;
+default-lease-time 600;
+max-lease-time 3600;
+authoritative;
+log-facility local7;
+
+# Opsi umum
+option domain-name "K05.com";
+option domain-name-servers 10.66.0.42; # Narya DNS
+option subnet-mask 255.255.255.248; # Subnet mask default untuk A13, tapi akan ditimpa di scope
+
+# --- Deklarasi Subnet (Non-Client, Vilya/Narya) ---
+subnet 10.66.0.40 netmask 255.255.255.248 {
+}
+
+# ----------------------------------------
+# Scope untuk CLIENT yang mendapat IP Otomatis
+# ----------------------------------------
+
+# 1. Subnet A11: Khamul (5 Host) - 10.66.0.32/29
+subnet 10.66.0.32 netmask 255.255.255.248 {
+    range 10.66.0.35 10.66.0.38; 
+    option routers 10.66.0.33; # Gateway Khamul: Wilderland
+    option broadcast-address 10.66.0.39;
+}
+
+# 2. Subnet A10: Durin (50 Host) - 10.66.0.64/26
+subnet 10.66.0.64 netmask 255.255.255.192 {
+    range 10.66.0.67 10.66.0.126; 
+    option routers 10.66.0.65; # Gateway Durin: Wilderland
+    option broadcast-address 10.66.0.127;
+}
+
+# 3. Subnet A5: Gilgalad & Cirdan (121 Host) - 10.66.0.128/25
+subnet 10.66.0.128 netmask 255.255.255.128 {
+    range 10.66.0.132 10.66.0.254; 
+    option routers 10.66.0.129; # Gateway A5: AnduinBanks
+    option broadcast-address 10.66.0.255;
+}
+
+# 4. Subnet A6: Elendil & Isildur (231 Host) - 10.66.1.0/24
+subnet 10.66.1.0 netmask 255.255.255.0 {
+    range 10.66.1.4 10.66.1.254; 
+    option routers 10.66.1.1; # Gateway A6: Minastir/Swath4
+    option broadcast-address 10.66.1.255;
+}
+
+# Deklarasi host static Palantir (10.66.0.14) dan IronHills (10.66.0.22)
+host palantir { fixed-address 10.66.0.14; }
+host ironhills { fixed-address 10.66.0.22; }
+
+EOF
+
+# Restart DHCP Server
+service isc-dhcp-server restart
+```
+
+#### 📸 Bukti DHCP Server
+
+![bukti](assets/misi1no4vilya.png)
+
+---
+
+#### 1.4.2. DHCP Relay
+
+**Fungsi**: AnduinBanks, Rivendell, Moria, Wilderland, dan Minastir berfungsi sebagai DHCP Relay untuk meneruskan DHCP Request dari klien ke DHCP Server (Vilya).
+
+**Instalasi DHCP Relay**
+```bash
+apt-get update
+apt-get install isc-dhcp-relay -y
+```
+
+**Konfigurasi DHCP Relay (/etc/default/isc-dhcp-relay)**
+```
+SERVERS="10.66.0.43"
+INTERFACES="eth0 eth1"
+OPTIONS=""
+```
+
+**Konfigurasi Sysctl (/etc/sysctl.conf)**
+```
+net.ipv4.ip_forward=1
+```
+
+**Aktifkan IP Forward**
+```bash
+sysctl -p
+```
+
+**Restart Service**
+```bash
+systemctl restart isc-dhcp-relay
+systemctl enable isc-dhcp-relay
+```
+
+**Catatan**: Lakukan konfigurasi yang sama pada:
+- AnduinBanks (Relay untuk A6)
+- Rivendell (Relay untuk A11)
+- Moria (Relay untuk A8, A9, A12, A13)
+- Wilderland (Relay untuk A10)
+- Minastir (Relay untuk A1, A2)
+
+#### 📸 Bukti DHCP Relay
+
+![bukti](assets/misi1no4anduin.png)
+![bukti](assets/misi1no4rivendell.png)
+![bukti](assets/misi1no4moria.png)
+![bukti](assets/misi1no4wilderland.png)
+![bukti](assets/misi1no4minastir.png)
+
+---
+
+#### 1.4.3. DNS Server (Narya)
+
+**Fungsi**: Narya berfungsi sebagai DNS Server untuk menerjemahkan nama domain menjadi alamat IP.
+
+**Instalasi DNS Server**
+```bash
+apt-get update
+apt-get install bind9 -y
+```
+
+**Konfigurasi Named (/etc/bind/named.conf.local)**
+```
+zone "jarkom.com" {
+  type master;
+  file "/etc/bind/db.jarkom.com";
+};
+
+zone "0.66.10.in-addr.arpa" {
+  type master;
+  file "/etc/bind/db.10.66.0";
+};
+```
+
+**Konfigurasi Zone File (/etc/bind/db.jarkom.com)**
+```
+;
+; BIND data file for jarkom.com
+;
+$TTL    604800
+@       IN      SOA     narya.jarkom.com. root.jarkom.com. (
+                              2         ; Serial
+                         604800         ; Refresh
+                          86400         ; Retry
+                        2419200         ; Expire
+                         604800 )       ; Negative Cache TTL
+;
+@       IN      NS      narya.jarkom.com.
+narya   IN      A       10.66.0.35
+palantir IN      A       10.66.0.37
+ironhills IN     A       10.66.1.2
+vilya   IN      A       10.66.0.43
+```
+
+**Konfigurasi Reverse Zone (/etc/bind/db.10.66.0)**
+```
+;
+; BIND reverse data file for 10.66.0.0/16
+;
+$TTL    604800
+@       IN      SOA     narya.jarkom.com. root.jarkom.com. (
+                              2         ; Serial
+                         604800         ; Refresh
+                          86400         ; Retry
+                        2419200         ; Expire
+                         604800 )       ; Negative Cache TTL
+;
+@       IN      NS      narya.jarkom.com.
+35.0    IN      PTR     narya.jarkom.com.
+37.0    IN      PTR     palantir.jarkom.com.
+43.0    IN      PTR     vilya.jarkom.com.
+```
+
+**Restart Service**
+```bash
+systemctl restart bind9
+systemctl enable bind9
+```
+
+#### 📸 Bukti DNS Server
+
+![bukti](assets/misi1no4narya.png)
+
+---
+
+#### 1.4.4. Web Server (Palantir & IronHills)
+
+**Fungsi**: Palantir dan IronHills berfungsi sebagai Web Server menggunakan Apache untuk melayani konten web.
+
+**Instalasi Web Server (Apache)**
+```bash
+apt-get update
+apt-get install apache2 -y
+```
+
+**Buat index.html berisikan: "Welcome to {hostname}". (Misi 1 No. 4)**
+```
+echo "<h1>Welcome to Palantir/Ironhills</h1>" > /var/www/html/index.html
+service apache2 restart
+```
+
+**Lakukan konfigurasi yang sama pada:**
+- Palantir (10.66.0.37)
+- IronHills (10.66.1.2)
+
+#### 📸 Bukti Web Server
+
+![bukti1](assets/misi1no4palantir.png)
+![bukti2](assets/misi1no4ironhills.png)
 
 
 ## Misi 2
