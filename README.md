@@ -55,6 +55,13 @@ Pembagian subnetting dengan VLSM
 ---
 # 📚 Laporan Praktikum Jaringan Komputer - Modul 5
 
+## Misi 1
+
+### 1.3. Konfigurasi rute antar Subnet
+
+
+
+
 ## Misi 2
 
 ### 2.1. NAT (SNAT) untuk Akses Keluar Jaringan (Osgiliath)
